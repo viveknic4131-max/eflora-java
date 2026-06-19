@@ -1,0 +1,111 @@
+<div th:fragment="sidebar">
+	<aside class="menu-sidebar" id="main-sidebar">
+
+		<div class="logo">
+			<a class="logo-link" href="javascript:void(0);"
+				hx-get="/admin/dashboard" hx-target="#main-content"
+				hx-swap="innerHTML" aria-label="IVH"> <span class="logo-mark"
+				aria-hidden="true">C</span> <span class="logo-text">IVH</span>
+			</a>
+			<button class="sidebar-close js-sidebar-toggle" type="button"
+				aria-label="Close navigation">
+				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+			</button>
+		</div>
+
+		<div class="menu-sidebar__content js-scrollbar1">
+			<nav class="navbar-sidebar" hx-target="#main-content"
+				hx-swap="innerHTML">
+				<ul class="list-unstyled navbar__list">
+
+					<li>
+					<a href="/admin/dashboard" hx-get="/admin/dashboard"
+						hx-target="#main-content" hx-swap="innerHTML"> <i
+							class="fa-solid fa-tachometer-alt"></i> Dashboard
+					</a> 
+					
+					</li>
+
+					<li><a href="javascript:void(0);" hx-get="/admin/charts">
+							<i class="fa-solid fa-chart-bar"></i>Charts
+					</a></li>
+
+					<li class="has-sub"><a class="js-arrow"
+						href="javascript:void(0);"><i class="fa-solid fa-table"></i>Tables</a>
+						<ul class="list-unstyled navbar__sub-list js-sub-list">
+							<li><a href="javascript:void(0);" hx-get="/admin/tables">Tables</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/tables/data-table">Data table</a></li>
+						</ul></li>
+
+					<li class="has-sub"><a class="js-arrow"
+						href="javascript:void(0);"><i
+							class="fa-regular fa-square-check"></i>Forms</a>
+						<ul class="list-unstyled navbar__sub-list js-sub-list">
+							<li><a href="javascript:void(0);" hx-get="/admin/forms">Forms</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/forms/wizard">Setup wizard</a></li>
+						</ul></li>
+
+					<li><a href="javascript:void(0);" hx-get="/admin/calendar"><i
+							class="fa-solid fa-calendar-alt"></i>Calendar</a></li>
+					<li><a href="javascript:void(0);" hx-get="/admin/map"><i
+							class="fa-solid fa-map-marker-alt"></i>Maps</a></li>
+					<li><a href="javascript:void(0);" hx-get="/admin/inbox"><i
+							class="fa-solid fa-inbox"></i>Inbox</a></li>
+					<li><a href="javascript:void(0);" hx-get="/admin/kanban"><i
+							class="fa-solid fa-columns"></i>Kanban</a></li>
+					<li><a href="javascript:void(0);"
+						hx-get="/admin/notifications"><i class="fa-regular fa-bell"></i>Notifications</a>
+					</li>
+					<li><a href="javascript:void(0);" hx-get="/admin/docs"><i
+							class="fa-regular fa-file-lines"></i>Documentation</a></li>
+
+					<li class="has-sub"><a class="js-arrow"
+						href="javascript:void(0);"><i class="fa-solid fa-user-gear"></i>Account</a>
+						<ul class="list-unstyled navbar__sub-list js-sub-list">
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/account/profile">Profile &amp; settings</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/account/pricing">Pricing</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/account/invoice">Invoice</a></li>
+						</ul></li>
+
+					<li class="has-sub"><a class="js-arrow"
+						href="javascript:void(0);"><i class="fa-solid fa-copy"></i>Pages</a>
+						<ul class="list-unstyled navbar__sub-list js-sub-list">
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/pages/maintenance">Maintenance</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/pages/404">404
+									not found</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/pages/500">500
+									server error</a></li>
+						</ul></li>
+
+					<li class="has-sub"><a class="js-arrow"
+						href="javascript:void(0);"><i class="fa-solid fa-desktop"></i>UI
+							Elements</a>
+						<ul class="list-unstyled navbar__sub-list js-sub-list">
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/buttons">Buttons</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/badges">Badges</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/tabs">Tabs</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/cards">Cards</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/alerts">Alerts</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/ui/progress-bars">Progress bars</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/modals">Modals</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/ui/switches">Switches</a></li>
+							<li><a href="javascript:void(0);" hx-get="/admin/ui/grid">Grid
+									system</a></li>
+							<li><a href="javascript:void(0);"
+								hx-get="/admin/ui/typography">Typography</a></li>
+						</ul></li>
+
+				</ul>
+			</nav>
+		</div>
+
+	</aside>
+</div>
