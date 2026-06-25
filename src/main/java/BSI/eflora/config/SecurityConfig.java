@@ -1,4 +1,4 @@
-package BSI.eflora.config;
+package bsi.eflora.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,8 +16,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+         
+            .exceptionHandling(exception -> exception
+                  
+                .accessDeniedPage("/admin/pages/403")
+            )
+
             .authorizeHttpRequests(auth -> auth
-             
+              
                 .requestMatchers(
                     "/", 
                     "/home",
@@ -26,21 +32,24 @@ public class SecurityConfig {
                     "/js/**", 
                     "/images/**"
                 ).permitAll()
-
               
+               
                 .requestMatchers("/admin/**").authenticated()
 
+                
                 .anyRequest().permitAll()
             )
 
             .formLogin(login -> login
                 .loginPage("/login")
-                .defaultSuccessUrl("/admin/dashboard", true)
+                .defaultSuccessUrl("/admin/dashboard", true) 
                 .permitAll()
             )
 
             .logout(logout -> logout
                 .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
             );
 
         return http.build();
@@ -50,6 +59,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public UserDetailsService users() {
         UserDetails user = User

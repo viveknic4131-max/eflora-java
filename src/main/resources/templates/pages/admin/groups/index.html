@@ -1,0 +1,123 @@
+<html xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{layout/admin :: layout(~{::section})}">
+
+<section th:fragment="group-index-body" class="section__content section__content--p30">
+
+	<div class="container-fluid">
+		<div class="page-header">
+			<div>
+				<h1>Group</h1>
+			</div>
+			<div class="page-header__actions">
+				<button type="button" class="m-btn m-btn--ghost">
+					<i class="fa-solid fa-download"></i> Export
+				</button>
+				<a th:href="@{/admin/group/create}" class="m-btn m-btn--primary">
+					<i class="fa-solid fa-plus"></i> Add Group
+				</a>
+			</div>
+		</div>
+
+		<div id="table-card-wrapper" th:data-base-url="@{/admin/group}" th:data-current-sort="${sortField}" th:data-current-dir="${sortDir}">
+			<section class="m-card" style="padding: 20px;">
+				
+				<div class="dt-toolbar">
+					<div class="dt-search">
+						<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> 
+						<input type="search" id="dt-search-input" class="js-table-search"
+							placeholder="Search any column…" aria-label="Search" th:value="${searchQuery}">
+					</div>
+					<div style="display: flex; gap: 8px; align-items: center;">
+						<label style="font-size: 12.5px; color: var(--m-text-muted); display: inline-flex; align-items: center; gap: 8px;">
+							Show 
+							<select id="dt-page-size" class="form-select js-table-size" style="width: 80px; height: 32px; padding: 0 24px 0 10px; font-size: 12.5px;">
+								<option th:selected="${groups.size == 5}">5</option>
+								<option th:selected="${groups.size == 10}">10</option>
+								<option th:selected="${groups.size == 20}">20</option>
+								<option th:selected="${groups.size == 50}">50</option>
+							</select> rows
+						</label>
+					</div>
+				</div>
+
+				<table class="m-table dt-table" id="dt-table">
+					<thead>
+						<tr>
+							<th th:classappend="${sortField == 'name'} ? (${sortDir == 'asc'} ? 'dt-sort-asc' : 'dt-sort-desc')" 
+								data-sort="name" style="cursor: pointer; user-select: none;">Group Name</th>
+							
+							<th th:classappend="${sortField == 'signupDate'} ? (${sortDir == 'asc'} ? 'dt-sort-asc' : 'dt-sort-desc')" 
+								data-sort="signupDate" style="cursor: pointer; user-select: none;">Signed up</th>
+							
+							<th style="text-align: right; width: 100px;">Actions</th>
+						</tr>
+					</thead>
+					<tbody id="dt-body">
+						<tr th:each="g : ${groups.content}">
+							<td>
+								<strong style="color: var(--m-text); font-weight: 500;" th:text="${g.name}">Group Name</strong>
+							</td>
+							<td th:text="${#temporals.format(g.signupDate, 'yyyy-MM-dd')}">2026-06-25</td>
+							<td style="text-align: right;">
+								<div style="display: inline-flex; gap: 8px; align-items: center;">
+									<a th:href="@{/admin/group/edit/{id}(id=${g.id})}" style="color: var(--m-accent); text-decoration: none;" title="Edit">
+										<i class="fa-solid fa-pen-to-square"></i>
+									</a>
+									<a th:href="@{/admin/group/delete/{id}(id=${g.id})}" style="color: #ef4444; text-decoration: none;" title="Delete" 
+									   onclick="return confirm('Are you sure you want to delete this group?');">
+										<i class="fa-solid fa-trash-can"></i>
+									</a>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div id="dt-empty" class="empty-state" th:style="${groups.totalElements == 0} ? 'display: flex;' : 'display: none;'">
+					<span class="empty-state__icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+					<h3 class="empty-state__title">No results</h3>
+					<p class="empty-state__text">Try a different search term, or clear the filter to show everything again.</p>
+					<div class="empty-state__actions">
+						<button type="button" class="m-btn m-btn--ghost" id="dt-clear-search">Clear search</button>
+					</div>
+				</div>
+
+				<div class="dt-pagination">
+					<span class="dt-pagination__info" id="dt-info" 
+						  th:text="'Showing ' + (${groups.number * groups.size + 1}) + '–' + (${groups.number * groups.size + groups.numberOfElements}) + ' of ' + ${groups.totalElements}">
+						Showing 1–10 of 22
+					</span>
+					<div class="dt-pagination__nav" id="dt-nav">
+						
+						<button type="button" class="js-page-link" 
+								th:data-page="${groups.number - 1}" 
+								th:disabled="${groups.first}">
+							<i class="fa-solid fa-chevron-left"></i>
+						</button>
+						
+						<th:block th:each="i : ${#numbers.sequence(0, groups.totalPages - 1)}" th:if="${groups.totalPages > 0}">
+							<span th:if="${groups.totalPages > 7 and i != 0 and i != groups.totalPages - 1 and T(java.lang.Math).abs(i - groups.number) > 1 and (i == groups.number - 2 or i == groups.number + 2)}" 
+								  style="padding: 0 6px; color: var(--m-text-faint);">…</span>
+								  
+							<button type="button" class="js-page-link" 
+									th:if="${groups.totalPages <= 7 or i == 0 or i == groups.totalPages - 1 or T(java.lang.Math).abs(i - groups.number) <= 1}"
+									th:classappend="${i == groups.number} ? 'is-active'" 
+									th:data-page="${i}" th:text="${i + 1}">1</button>
+						</th:block>
+
+						<button type="button" class="js-page-link" 
+								th:data-page="${groups.number + 1}" 
+								th:disabled="${groups.last}">
+							<i class="fa-solid fa-chevron-right"></i>
+						</button>
+						
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+
+	<script src="/js/global-table-handler.js"></script>
+
+</section>
+</html>

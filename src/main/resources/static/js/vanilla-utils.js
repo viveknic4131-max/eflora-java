@@ -131,25 +131,12 @@ const fadeToggle = (element, duration = 300) => {
 };
 
 // DOM Ready
-/*const ready = (callback) => {
-    if (document.readyState !== 'loading') {
-        callback();
-    } else {
-        document.addEventListener('DOMContentLoaded', callback);
-    }
-};*/
-
-// DOM Ready + HTMX Support (Modified)
 const ready = (callback) => {
     if (document.readyState !== 'loading') {
         callback();
     } else {
         document.addEventListener('DOMContentLoaded', callback);
     }
-
-    // 🔥 BAS YEH EK LINE JOD DO 🔥
-    // Jab bhi HTMX naya page laayega, yeh callback ko dubara jagayega
-    document.addEventListener('htmx:afterSettle', callback);
 };
 
 // Utility functions

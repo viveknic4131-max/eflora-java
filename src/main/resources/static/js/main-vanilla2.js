@@ -1453,3 +1453,277 @@ function initResponsiveTableShadows() {
     on(window, 'resize', update);
   });
 }
+
+
+
+
+//1. Pagination aur Filter ka Global State
+let dtState = {
+    currentPage: 0,
+    pageSize: 10,
+    sortBy: 'name',
+    sortDir: 'asc',
+    search: ''
+};
+
+// Debounce function taaki user ke har character type karne par call na jaye (Performance Optimizer)
+function debounce(func, timeout = 400) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
+// 2. Main Fetch Function (Spring Boot API Connection)
+async function fetchGroupData() {
+    const tbody = document.getElementById('dt-body');
+    const tableEl = document.getElementById('dt-table');
+    const emptyStateEl = document.getElementById('dt-empty');
+    
+    // API endpoint parameters ke sath build karein
+    const url = `/api/groups?page=${dtState.currentPage}&size=${dtState.pageSize}&sortBy=${dtState.sortBy}&sortDir=${dtState.sortDir}&search=${encodeURIComponent(dtState.search)}`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Server Error");
+        
+        const data = await response.json(); // Spring Boot Page object
+        
+        // Agar data khali hai toh Empty State dikhao
+        if (!data.content || data.content.length === 0) {
+            tbody.innerHTML = '';
+            tableEl.style.display = 'none';
+            emptyStateEl.style.display = 'block';
+            updatePaginationInfo(0, 0, 0);
+            document.getElementById('dt-nav').innerHTML = '';
+            return;
+        }
+        
+        // Data milne par view render karein
+        tableEl.style.removeProperty('display');
+        emptyStateEl.style.display = 'none';
+        
+        renderTableRows(data.content);
+        renderPaginationNav(data);
+        
+    } catch (error) {
+        console.error("Error fetching group data:", error);
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger">Failed to load data. Please try again.</td></tr>`;
+    }
+}
+
+// 3. Dynamic Rows Renderer (Aapke Design style ke sath matching)
+function renderTableRows(groups) {
+    const tbody = document.getElementById('dt-body');
+    
+    // Pehle purane dynamic tooltips ko destroy karein memory leaks se bachne ke liye
+    tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        const instance = bootstrap.Tooltip.getInstance(el);
+        if (instance) instance.dispose();
+    });
+
+    // Template Literals se structure build karein (No quotes + messy concatenation)
+    tbody.innerHTML = groups.map(row => {
+        return `
+            <tr>
+                <td>
+                    <strong style="color:var(--m-text); font-weight:500;">${escapeHtml(row.name)}</strong>
+                </td>
+                <td>
+                    <span style="color:var(--m-text-muted); font-size:13px;">${formatDate(row.signupDate || row.createdAt)}</span>
+                </td>
+                <td>
+                    <div class="table-data-feature">
+                        <button class="item" type="button" data-bs-toggle="tooltip" title="Send" onclick="handleSendAction(${row.id})">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                        <a href="/admin/group/edit/${row.id}" class="item" data-bs-toggle="tooltip" title="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </a>
+                        <button class="item" type="button" data-bs-toggle="tooltip" title="Delete" onclick="handleDeleteAction(${row.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Production Rule Fix: Naye runtime content par tooltips initialize karein
+    tbody.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
+    });
+}
+
+// 4. Pagination Controls Engine
+function renderPaginationNav(pageData) {
+    const navContainer = document.getElementById('dt-nav');
+    if (!navContainer) return;
+    
+    navContainer.innerHTML = '';
+
+    const startEntry = (pageData.number * pageData.size) + 1;
+    const endEntry = Math.min(startEntry + pageData.size - 1, pageData.totalElements);
+    updatePaginationInfo(startEntry, endEntry, pageData.totalElements);
+
+    // Main UL element
+    const ul = document.createElement('ul');
+    ul.className = 'pagination pagination-sm mb-0';
+
+    // 1. PREVIOUS BUTTON
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${pageData.first ? 'disabled' : ''}`;
+    
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-link';
+    prevBtn.type = 'button';
+    prevBtn.innerHTML = `<i class="fa-solid fa-chevron-left"></i>`;
+    
+    if (!pageData.first) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dtState.currentPage--;
+            fetchGroupData();
+        });
+    }
+    prevLi.appendChild(prevBtn);
+    ul.appendChild(prevLi);
+
+    // 2. PAGE NUMBERS (1, 2, 3...)
+    for (let i = 0; i < pageData.totalPages; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${pageData.number === i ? 'active' : ''}`;
+        
+        const pageBtn = document.createElement('button');
+        pageBtn.className = 'page-link';
+        pageBtn.type = 'button';
+        pageBtn.textContent = i + 1;
+        
+        // Direct Event Listener on the button element itself
+        pageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dtState.currentPage = i;
+            fetchGroupData();
+        });
+        
+        pageLi.appendChild(pageBtn);
+        ul.appendChild(pageLi);
+    }
+
+    // 3. NEXT BUTTON
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${pageData.last ? 'disabled' : ''}`;
+    
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-link';
+    nextBtn.type = 'button';
+    nextBtn.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
+    
+    if (!pageData.last) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dtState.currentPage++;
+            fetchGroupData();
+        });
+    }
+    nextLi.appendChild(nextBtn);
+    ul.appendChild(nextLi);
+    
+    // Append the whole layout to container
+    navContainer.appendChild(ul);
+}
+// 5. Text information updates
+function updatePaginationInfo(start, end, total) {
+    document.getElementById('dt-info').textContent = `Showing ${start} to ${end} of ${total} entries`;
+}
+
+// 6. Header Sort UI Handler
+function updateSortIcons(clickedHeader) {
+    document.querySelectorAll('#dt-table th[data-sort]').forEach(th => {
+        const icon = th.querySelector('i');
+        if (!icon) return;
+        if (th === clickedHeader) {
+            icon.className = dtState.sortDir === 'asc' ? 'fa-solid fa-sort-up ms-1' : 'fa-solid fa-sort-down ms-1';
+            icon.style.color = 'var(--m-accent)';
+        } else {
+            icon.className = 'fa-solid fa-sort ms-1';
+            icon.style.color = 'var(--m-text-muted)';
+        }
+    });
+}
+
+// 7. Event Listeners Connection on Page Load
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('dt-search-input');
+    const pageSizeSelect = document.getElementById('dt-page-size');
+    const clearSearchBtn = document.getElementById('dt-clear-search');
+
+    if (!document.getElementById('dt-table')) return;
+
+    // Initial load
+    fetchGroupData();
+
+    // Live Search input with debounce (400ms delay)
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce((e) => {
+            dtState.search = e.target.value;
+            dtState.currentPage = 0; // Search reset to page 1
+            fetchGroupData();
+        }, 400));
+    }
+
+    // Page size selection change
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', (e) => {
+            dtState.pageSize = parseInt(e.target.value, 10);
+            dtState.currentPage = 0; // Page sizing resets to page 1
+            fetchGroupData();
+        });
+    }
+
+    // Clear search action from empty state
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            dtState.search = '';
+            dtState.currentPage = 0;
+            fetchGroupData();
+        });
+    }
+
+    // Dynamic column header sorting events
+    document.querySelectorAll('#dt-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const field = th.getAttribute('data-sort');
+            if (dtState.sortBy === field) {
+                dtState.sortDir = dtState.sortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                dtState.sortBy = field;
+                dtState.sortDir = 'asc';
+            }
+            dtState.currentPage = 0; // Sorting resets to page 1
+            updateSortIcons(th);
+            fetchGroupData();
+        });
+    });
+});
+
+// Utilities Helpers
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? dateStr : date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Button actions handlers (Aapke controller logic ke anusar call kr skte h)
+function handleSendAction(id) { console.log("Send process initiated for ID:", id); }
+function handleDeleteAction(id) { console.log("Delete process initiated for ID:", id); }
+
